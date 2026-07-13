@@ -137,10 +137,11 @@
       pointer-events: none;
     }
 
-    #sobreBtn {
+    #sobreBtn,
+    #fullscreenBtn,
+    #voltarBtn {
       position: fixed;
       top: 22px;
-      right: 22px;
       width: 36px;
       height: 36px;
       z-index: 100000;
@@ -155,7 +156,7 @@
 
       font-family: Helvetica, Arial, sans-serif;
       font-size: 15px;
-      line-height: 36px;
+      line-height: 34px;
       text-align: center;
 
       cursor: pointer;
@@ -164,6 +165,103 @@
       user-select: none;
       -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
+    }
+
+    #sobreBtn {
+      right: 22px;
+    }
+
+    #fullscreenBtn {
+      left: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    #voltarBtn {
+      left: 22px;
+      top: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      text-decoration: none;
+    }
+
+    .fullscreen-icon {
+      position: relative;
+      display: block;
+      width: 14px;
+      height: 14px;
+      pointer-events: none;
+
+      background:
+        linear-gradient(currentColor, currentColor) left top / 6px 1px no-repeat,
+        linear-gradient(currentColor, currentColor) left top / 1px 6px no-repeat,
+        linear-gradient(currentColor, currentColor) right top / 6px 1px no-repeat,
+        linear-gradient(currentColor, currentColor) right top / 1px 6px no-repeat,
+        linear-gradient(currentColor, currentColor) left bottom / 6px 1px no-repeat,
+        linear-gradient(currentColor, currentColor) left bottom / 1px 6px no-repeat,
+        linear-gradient(currentColor, currentColor) right bottom / 6px 1px no-repeat,
+        linear-gradient(currentColor, currentColor) right bottom / 1px 6px no-repeat;
+    }
+
+    .fullscreen-icon::before,
+    .fullscreen-icon::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 8px;
+      height: 1px;
+      background: currentColor;
+      opacity: 0;
+      transform-origin: center;
+    }
+
+    #fullscreenBtn.ativo .fullscreen-icon::before {
+      opacity: 1;
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    #fullscreenBtn.ativo .fullscreen-icon::after {
+      opacity: 1;
+      transform: translate(-50%, -50%) rotate(-45deg);
+    }
+
+    .voltar-icon {
+      position: relative;
+      display: block;
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+    }
+
+    .voltar-icon::before {
+      content: "";
+      position: absolute;
+      right: 2px;
+      top: 1px;
+      width: 11px;
+      height: 9px;
+      border-right: 1px solid currentColor;
+      border-bottom: 1px solid currentColor;
+      box-sizing: border-box;
+    }
+
+    .voltar-icon::after {
+      content: "";
+      position: absolute;
+      left: 1px;
+      bottom: 3px;
+      width: 7px;
+      height: 7px;
+      border-left: 1px solid currentColor;
+      border-bottom: 1px solid currentColor;
+      transform: rotate(45deg);
+      transform-origin: center;
+      box-sizing: border-box;
     }
 
     #sobreOverlay {
@@ -291,6 +389,44 @@
     .caixa-azul {
       color: rgb(70, 130, 255);
       font-weight: bold;
+    }
+
+
+
+    /* Instruções iniciais exclusivas para computador */
+    #desktopInstructions {
+      position: fixed;
+      inset: 0;
+      z-index: 200000;
+
+      display: none;
+      align-items: center;
+      justify-content: center;
+
+      padding: 20px;
+      box-sizing: border-box;
+      background: transparent;
+
+      cursor: pointer;
+      pointer-events: auto;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #desktopInstructions.aberto {
+      display: flex;
+    }
+
+    #desktopInstructions img {
+      display: block;
+      width: min(400px, calc(100vw - 40px));
+      height: auto;
+      max-height: calc(100vh - 40px);
+      object-fit: contain;
+
+      outline: none;
+      cursor: pointer;
     }
 
     @media (min-width: 900px) {
@@ -480,7 +616,7 @@
         this.yaw -= right.x * this.data.lookSpeed * dt;
         this.pitch -= right.y * this.data.lookSpeed * dt;
 
-        const maxLookUp = THREE.MathUtils.degToRad(30);
+        const maxLookUp = THREE.MathUtils.degToRad(45);
         const maxLookDown = THREE.MathUtils.degToRad(30);
 
         this.pitch = Math.max(-maxLookDown, Math.min(maxLookUp, this.pitch));
@@ -550,6 +686,13 @@
 </head>
 
 <body>
+  <div
+    id="desktopInstructions"
+    role="button"
+    tabindex="0"
+    aria-label="Fechar instruções e iniciar a navegação">
+  </div>
+
   <div id="fade-in-blue"></div>
 
   <a-scene
@@ -612,7 +755,7 @@
 
     <a-entity
       id="rig"
-      position="0 2 5"
+      position="0 2.4 5"
       mobile-joystick-controls="moveSpeed: 8; lookSpeed: 0.5; moveAcceleration: 15"
       travar-na-navmesh="navmesh: #navmesh; rayHeight: 10; rayDistance: 30">
 
@@ -639,6 +782,10 @@
 
   <div id="brightness-vignette"></div>
 
+  <button id="fullscreenBtn" type="button" aria-label="Entrar em tela cheia" title="Tela cheia"><span class="fullscreen-icon" aria-hidden="true"></span></button>
+
+  <a id="voltarBtn" href="https://www.saladobradica.art.br/" aria-label="Voltar para o site da Sala Dobradiça" title="Voltar"><span class="voltar-icon" aria-hidden="true"></span></a>
+
   <button id="sobreBtn" aria-label="Sobre a Sala Dobradiça Digital">?</button>
 
   <div id="sobreOverlay">
@@ -662,7 +809,7 @@
 
         <p>
           <span class="destaque-branco">Participantes desta edição:</span> Ana Carolina Freo, Ana Ribeiro, Antônia Schwarz,
-          Bianca R. Demczuk, Cartola, Clara Baracat, Danielle Melo, Eduarda Ribeiro, Gabriel Ferreira,
+          Bianca R. Demczuk, Cartola, Clara Baracat, Danielle Melo, Du Ribeiro, Gabriel Ferreira,
           Gabriela Berwanger, Gabriele Anezi, Gisele Pacheco, Henrique Fagundes, Júlia L. Mendes,
           Julia Revelant, Larisse Machado, Laura Kern, Laura Weber, Le dOLL.Z, Lucas Dillenburg Marcon,
           Manuela Rudkowski, Mariana Bonine, Mariana Netto, Mateus Meirose, Mendel da Silva,
@@ -803,6 +950,74 @@
   </script>
 
   <script>
+    (function configurarTelaCheia() {
+      const botao = document.getElementById('fullscreenBtn');
+      const elemento = document.documentElement;
+
+      function elementoEmTelaCheia() {
+        return document.fullscreenElement ||
+               document.webkitFullscreenElement ||
+               document.mozFullScreenElement ||
+               document.msFullscreenElement;
+      }
+
+      function atualizarBotao() {
+        const ativo = Boolean(elementoEmTelaCheia());
+        botao.setAttribute(
+          'aria-label',
+          ativo ? 'Sair da tela cheia' : 'Entrar em tela cheia'
+        );
+        botao.title = ativo ? 'Sair da tela cheia' : 'Tela cheia';
+        botao.classList.toggle('ativo', ativo);
+      }
+
+      async function alternarTelaCheia() {
+        try {
+          if (!elementoEmTelaCheia()) {
+            const entrar = elemento.requestFullscreen ||
+                           elemento.webkitRequestFullscreen ||
+                           elemento.mozRequestFullScreen ||
+                           elemento.msRequestFullscreen;
+
+            if (entrar) {
+              const resultado = entrar.call(elemento);
+              if (resultado && typeof resultado.then === 'function') {
+                await resultado;
+              }
+            }
+          } else {
+            const sair = document.exitFullscreen ||
+                         document.webkitExitFullscreen ||
+                         document.mozCancelFullScreen ||
+                         document.msExitFullscreen;
+
+            if (sair) {
+              const resultado = sair.call(document);
+              if (resultado && typeof resultado.then === 'function') {
+                await resultado;
+              }
+            }
+          }
+        } catch (erro) {
+          console.warn('Não foi possível alternar a tela cheia:', erro);
+        }
+      }
+
+      botao.addEventListener('click', function (event) {
+        event.stopPropagation();
+        alternarTelaCheia();
+      });
+
+      document.addEventListener('fullscreenchange', atualizarBotao);
+      document.addEventListener('webkitfullscreenchange', atualizarBotao);
+      document.addEventListener('mozfullscreenchange', atualizarBotao);
+      document.addEventListener('MSFullscreenChange', atualizarBotao);
+
+      atualizarBotao();
+    })();
+  </script>
+
+  <script>
     const sobreBtn = document.getElementById('sobreBtn');
     const sobreOverlay = document.getElementById('sobreOverlay');
     const fecharSobre = document.getElementById('fecharSobre');
@@ -821,5 +1036,77 @@
       }
     });
   </script>
+
+
+  <script>
+    (function configurarInstrucoesDesktop() {
+      const consultaDesktop = window.matchMedia('(min-width: 900px) and (pointer: fine)');
+      const overlay = document.getElementById('desktopInstructions');
+      let camera = null;
+      let aberto = false;
+
+      function definirControles(ativados) {
+        camera = camera || document.getElementById('camera');
+        if (!camera) return;
+
+        camera.setAttribute('wasd-controls', 'enabled', ativados);
+        camera.setAttribute('look-controls', 'enabled', ativados);
+      }
+
+      function fecharInstrucoes() {
+        if (!aberto) return;
+
+        aberto = false;
+        overlay.classList.remove('aberto');
+        overlay.setAttribute('aria-hidden', 'true');
+        definirControles(true);
+      }
+
+      function abrirInstrucoes() {
+        if (!consultaDesktop.matches || aberto) return;
+
+        aberto = true;
+        overlay.innerHTML = '';
+
+        const imagem = document.createElement('img');
+        imagem.src = 'img/popup.png';
+        imagem.alt = 'Instruções de navegação no computador. Clique para começar.';
+        imagem.draggable = false;
+
+        overlay.appendChild(imagem);
+        overlay.classList.add('aberto');
+        overlay.setAttribute('aria-hidden', 'false');
+        definirControles(false);
+        overlay.focus();
+      }
+
+      overlay.addEventListener('click', fecharInstrucoes);
+
+      overlay.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          fecharInstrucoes();
+        }
+      });
+
+      const scene = document.querySelector('a-scene');
+
+      if (scene.hasLoaded) {
+        abrirInstrucoes();
+      } else {
+        scene.addEventListener('loaded', abrirInstrucoes, { once: true });
+      }
+
+      consultaDesktop.addEventListener('change', function (event) {
+        if (!event.matches) {
+          overlay.classList.remove('aberto');
+          overlay.innerHTML = '';
+          aberto = false;
+          definirControles(true);
+        }
+      });
+    })();
+  </script>
+
 </body>
 </html>
