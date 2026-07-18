@@ -893,6 +893,7 @@
 
       const radius = 40;
       let active = false;
+      let activePointerId = null;
 
       function updateStick(clientX, clientY) {
         const rect = joy.getBoundingClientRect();
@@ -909,35 +910,62 @@
           dy = (dy / dist) * radius;
         }
 
-        stick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        stick.style.transform =
+          `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
 
         joystickState[side].x = dx / radius;
         joystickState[side].y = dy / radius;
       }
 
-      function resetStick() {
+      function resetStick(event) {
+        if (
+          event &&
+          activePointerId !== null &&
+          typeof event.pointerId === 'number' &&
+          event.pointerId !== activePointerId
+        ) {
+          return;
+        }
+
         stick.style.transform = 'translate(-50%, -50%)';
         joystickState[side].x = 0;
         joystickState[side].y = 0;
+
         active = false;
+        activePointerId = null;
       }
 
-      joy.addEventListener('pointerdown', (e) => {
+      joy.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
         active = true;
-        joy.setPointerCapture(e.pointerId);
-        updateStick(e.clientX, e.clientY);
+        activePointerId = event.pointerId;
+
+        try {
+          joy.setPointerCapture(event.pointerId);
+        } catch (erro) {
+          console.warn('Não foi possível capturar o toque do joystick:', erro);
+        }
+
+        updateStick(event.clientX, event.clientY);
       });
 
-      joy.addEventListener('pointermove', (e) => {
-        if (!active) return;
-        updateStick(e.clientX, e.clientY);
+      joy.addEventListener('pointermove', (event) => {
+        if (!active || event.pointerId !== activePointerId) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        updateStick(event.clientX, event.clientY);
       });
 
       joy.addEventListener('pointerup', resetStick);
       joy.addEventListener('pointercancel', resetStick);
+      joy.addEventListener('lostpointercapture', resetStick);
 
-      joy.addEventListener('pointerleave', () => {
-        if (active) resetStick();
+      joy.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
       });
     }
 
@@ -947,6 +975,19 @@
     window.addEventListener('pointerup', zerarJoysticks);
     window.addEventListener('pointercancel', zerarJoysticks);
     window.addEventListener('blur', zerarJoysticks);
+    window.addEventListener('resize', zerarJoysticks);
+    window.addEventListener('orientationchange', zerarJoysticks);
+
+    document.addEventListener('fullscreenchange', zerarJoysticks);
+    document.addEventListener('webkitfullscreenchange', zerarJoysticks);
+    document.addEventListener('mozfullscreenchange', zerarJoysticks);
+    document.addEventListener('MSFullscreenChange', zerarJoysticks);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        zerarJoysticks();
+      }
+    });
   </script>
 
   <script>
